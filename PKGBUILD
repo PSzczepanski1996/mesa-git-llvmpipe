@@ -107,7 +107,7 @@ build () {
        -D gles1=false \
        -D gles2=true \
        -D glvnd=true \
-       -D glx=dri \
+       -D glx=gallium-xlib \
        -D libunwind=true \
        -D llvm=true \
        -D lmsensors=true \
