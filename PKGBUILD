@@ -9,11 +9,11 @@
 # Contributor: Antti "Tera" Oja <antti.bofh@gmail.com>
 # Contributor: Diego Jose <diegoxter1006@gmail.com>
 
-pkgname=mesa-git
+pkgname=mesa-git-llvmpipe
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
 pkgver=20.1.0_devel.121982.dbdd0149ed5
 pkgrel=1
-arch=('x86_64')
+arch=('aarch64')
 makedepends=('git' 'python-mako' 'xorgproto'
               'libxml2' 'libx11'  'libvdpau' 'libva' 'elfutils' 'libomxil-bellagio' 'libxrandr'
               'ocl-icd' 'libgcrypt'  'wayland' 'wayland-protocols' 'meson' 'ninja')
