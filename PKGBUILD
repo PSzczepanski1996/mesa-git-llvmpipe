@@ -11,16 +11,16 @@
 
 pkgname=mesa-git-llvmpipe
 pkgdesc="an open-source implementation of the OpenGL specification, git version"
-pkgver=20.1.0_devel.121982.dbdd0149ed5
+pkgver=20.3.0_devel.127495.2da1178bf3e
 pkgrel=1
 arch=('aarch64')
 makedepends=('git' 'python-mako' 'xorgproto'
-              'libxml2' 'libx11'  'libvdpau' 'libva' 'elfutils' 'libomxil-bellagio' 'libxrandr'
-              'ocl-icd' 'libgcrypt'  'wayland' 'wayland-protocols' 'meson' 'ninja')
+              'libxml2' 'libx11'  'libvdpau' 'libva' 'elfutils' 'libxrandr'
+              'ocl-icd' 'wayland-protocols' 'meson' 'ninja' 'glslang')
 depends=('libdrm' 'libxxf86vm' 'libxdamage' 'libxshmfence' 'libelf'
-         'libomxil-bellagio' 'libunwind' 'libglvnd' 'wayland' 'lm_sensors' 'libclc' 'glslang' 'vulkan-icd-loader' 'zstd')
+         'libomxil-bellagio' 'libunwind' 'libglvnd' 'wayland' 'lm_sensors' 'libclc' 'vulkan-icd-loader' 'zstd' 'expat')
 optdepends=('opengl-man-pages: for the OpenGL API man pages')
-provides=('mesa' 'vulkan-intel' 'vulkan-radeon' 'vulkan-mesa-layer' 'libva-mesa-driver' 'mesa-vdpau' 'vulkan-driver' 'opengl-driver' 'opencl-driver')
+provides=('mesa' 'opencl-mesa' 'vulkan-intel' 'vulkan-radeon' 'vulkan-mesa-layer' 'libva-mesa-driver' 'mesa-vdpau' 'vulkan-driver' 'opengl-driver' 'opencl-driver')
 conflicts=('mesa' 'opencl-mesa' 'vulkan-intel' 'vulkan-radeon' 'vulkan-mesa-layer' 'libva-mesa-driver' 'mesa-vdpau')
 url="https://www.mesa3d.org"
 license=('custom')
@@ -54,22 +54,26 @@ case $MESA_WHICH_LLVM in
         # aur llvm-minimal-git
         makedepends+=('llvm-minimal-git')
         depends+=('llvm-libs-minimal-git')
+        optdepends+=('llvm-minimal-git: opencl')
         ;;
     2)
         # aur llvm-git
         # depending on aur-llvm-* to avoid mixup with LH llvm-git
         makedepends+=('aur-llvm-git')
         depends+=('aur-llvm-libs-git')
+        optdepends+=('aur-llvm-git: opencl')
         ;;
     3)
         # mesa-git/llvm-git (lordheavy unofficial repo)
         makedepends+=('llvm-git' 'clang-git')
         depends+=('llvm-libs-git')
+        optdepends+=('clang-git: opencl' 'compiler-rt: opencl')
         ;;
     4)
         # extra/llvm
-        makedepends+=(llvm=9.0.1 clang=9.0.1)
-        depends+=(llvm-libs=9.0.1)
+        makedepends+=(llvm=10.0.1 clang=10.0.1)
+        depends+=(llvm-libs=10.0.1)
+        optdepends+=('clang: opencl' 'compiler-rt: opencl')
         ;;
     *)
 esac
@@ -95,6 +99,7 @@ prepare() {
 build () {
     meson setup mesa _build \
        -D b_ndebug=true \
+       -D b_lto=true \
        -D buildtype=plain \
        --wrap-mode=nofallback \
        -D prefix=/usr \
@@ -107,19 +112,14 @@ build () {
        -D llvm=true \
        -D lmsensors=true \
        -D osmesa=gallium \
-       -D shared-glapi=true \
+       -D shared-glapi=enabled \
        -D gallium-opencl=icd \
-       -D valgrind=false \
+       -D valgrind=disabled \
        -D tools=[] \
-       -D zstd=true \
+       -D zstd=enabled \
        
     meson configure _build
-    
-    # quoted from https://www.mesa3d.org/meson.html
-    # Note: autotools automatically updated translation files (used by the DRI configuration tool) as part of the build process, Meson does not do this. 
-    # Instead, you will need do this: 
-    ninja $NINJAFLAGS -C _build xmlpool-pot xmlpool-update-po xmlpool-gmo
-    #
+
     ninja $NINJAFLAGS -C _build
 }
 
@@ -134,5 +134,5 @@ package() {
     # indirect rendering
     ln -s /usr/lib/libGLX_mesa.so.0 "${pkgdir}/usr/lib/libGLX_indirect.so.0"
   
-    install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" "${srcdir}/LICENSE"
+    install -m644 -Dt "${pkgdir}/usr/share/licenses/${pkgname}" "${srcdir}/LICENSE"
 }
